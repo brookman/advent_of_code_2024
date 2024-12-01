@@ -1,6 +1,10 @@
-use std::{fs, time::Instant};
+use std::{
+    fs, thread,
+    time::{Duration, Instant},
+};
 
 use common::Solution;
+use itertools::Itertools;
 
 mod common;
 mod s_01;
@@ -30,37 +34,56 @@ mod s_24;
 mod s_25;
 
 fn main() {
-    solve(s_25::S {}, "25");
-    solve(s_24::S {}, "24");
-    solve(s_23::S {}, "23");
-    solve(s_22::S {}, "22");
-    solve(s_21::S {}, "21");
-    solve(s_20::S {}, "20");
-    solve(s_19::S {}, "19");
-    solve(s_18::S {}, "18");
-    solve(s_17::S {}, "17");
-    solve(s_16::S {}, "16");
-    solve(s_15::S {}, "15");
-    solve(s_14::S {}, "14");
-    solve(s_13::S {}, "13");
-    solve(s_12::S {}, "12");
-    solve(s_11::S {}, "11");
-    solve(s_10::S {}, "10");
-    solve(s_09::S {}, "09");
-    solve(s_08::S {}, "08");
-    solve(s_07::S {}, "07");
-    solve(s_06::S {}, "06");
-    solve(s_05::S {}, "05");
-    solve(s_04::S {}, "04");
-    solve(s_03::S {}, "03");
-    solve(s_02::S {}, "02");
-    solve(s_01::S {}, "01");
+    let solutions: Vec<Box<dyn Solution>> = vec![
+        Box::new(s_01::S {}),
+        Box::new(s_02::S {}),
+        Box::new(s_03::S {}),
+        Box::new(s_04::S {}),
+        Box::new(s_05::S {}),
+        Box::new(s_06::S {}),
+        Box::new(s_07::S {}),
+        Box::new(s_08::S {}),
+        Box::new(s_09::S {}),
+        Box::new(s_10::S {}),
+        Box::new(s_11::S {}),
+        Box::new(s_12::S {}),
+        Box::new(s_13::S {}),
+        Box::new(s_14::S {}),
+        Box::new(s_15::S {}),
+        Box::new(s_16::S {}),
+        Box::new(s_17::S {}),
+        Box::new(s_18::S {}),
+        Box::new(s_19::S {}),
+        Box::new(s_20::S {}),
+        Box::new(s_21::S {}),
+        Box::new(s_22::S {}),
+        Box::new(s_23::S {}),
+        Box::new(s_24::S {}),
+        Box::new(s_25::S {}),
+    ];
+
+    let sorted_solutions = solutions
+        .into_iter()
+        .enumerate()
+        .map(|(i, solution)| (i + 1, solution))
+        .sorted_by(|a, b| a.0.cmp(&b.0))
+        .rev()
+        .collect::<Vec<_>>();
+
+    let mut wait = true;
+    for (i, solution) in sorted_solutions {
+        let result = solve(solution, format!("{:02}", i).as_str());
+        if result.is_some() && wait {
+            thread::sleep(Duration::from_secs(3));
+            wait = false;
+        }
+    }
 }
 
-fn solve<T: Solution>(solution: T, day: &str) {
+fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
     let input = fs::read_to_string(format!("input/{}.txt", day)).unwrap();
     if input.is_empty() {
-        return;
+        return None;
     }
     let lines: Vec<&str> = input.lines().collect();
 
@@ -85,4 +108,5 @@ fn solve<T: Solution>(solution: T, day: &str) {
     } else {
         println!("Not solved yet");
     }
+    Some(())
 }
