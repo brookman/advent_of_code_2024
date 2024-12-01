@@ -1,13 +1,52 @@
+use std::collections::HashMap;
+
 use crate::common::*;
 
 pub struct S {}
 
 impl Solution for S {
-    fn solve_one(&self, input: &str, lines: &[&str]) -> Option<String> {
-        Some("test".to_string())
+    fn solve_one(&self, _input: &str, lines: &[&str]) -> Option<String> {
+        let mut list_one = Vec::new();
+        let mut list_two = Vec::new();
+        for line in lines {
+            let parts = line.split_whitespace().collect::<Vec<&str>>();
+            list_one.push(parts[0].parse::<i32>().unwrap());
+            list_two.push(parts[1].parse::<i32>().unwrap());
+        }
+
+        list_one.sort();
+        list_two.sort();
+
+        let mut distance_sum = 0;
+        list_one.iter().zip(list_two).for_each(|(a, b)| {
+            let distance = (a - b).abs();
+            distance_sum += distance;
+        });
+
+        Some(format!("{}", distance_sum))
     }
 
-    fn solve_two(&self, input: &str, lines: &[&str]) -> Option<String> {
-        None
+    fn solve_two(&self, _input: &str, lines: &[&str]) -> Option<String> {
+        let mut list_one = Vec::new();
+        let mut list_two = Vec::new();
+        for line in lines {
+            let parts = line.split_whitespace().collect::<Vec<&str>>();
+            list_one.push(parts[0].parse::<i32>().unwrap());
+            list_two.push(parts[1].parse::<i32>().unwrap());
+        }
+
+        let frequency_map = list_two.iter().fold(HashMap::new(), |mut map, item| {
+            *map.entry(*item).or_insert(0) += 1;
+            map
+        });
+
+        let mut total_similarity = 0;
+        for one in list_one {
+            let occurences = frequency_map.get(&one).unwrap_or(&0);
+            let similarity = one * occurences;
+            total_similarity += similarity;
+        }
+
+        Some(format!("{}", total_similarity))
     }
 }
