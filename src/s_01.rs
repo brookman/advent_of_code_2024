@@ -6,34 +6,22 @@ pub struct S {}
 
 impl Solution for S {
     fn solve_one(&self, _input: &str, lines: &[&str]) -> Option<String> {
-        let mut list_one = Vec::new();
-        let mut list_two = Vec::new();
-        for line in lines {
-            let parts = line.split_whitespace().collect::<Vec<&str>>();
-            list_one.push(parts[0].parse::<i32>().unwrap());
-            list_two.push(parts[1].parse::<i32>().unwrap());
-        }
+        let (mut list_one, mut list_two) = parse_columns(lines);
 
         list_one.sort();
         list_two.sort();
 
-        let mut distance_sum = 0;
-        list_one.iter().zip(list_two).for_each(|(a, b)| {
-            let distance = (a - b).abs();
-            distance_sum += distance;
-        });
+        let distance_sum: u32 = list_one
+            .iter()
+            .zip(list_two)
+            .map(|(one, two)| (one - two).unsigned_abs())
+            .sum();
 
         Some(format!("{}", distance_sum))
     }
 
     fn solve_two(&self, _input: &str, lines: &[&str]) -> Option<String> {
-        let mut list_one = Vec::new();
-        let mut list_two = Vec::new();
-        for line in lines {
-            let parts = line.split_whitespace().collect::<Vec<&str>>();
-            list_one.push(parts[0].parse::<i32>().unwrap());
-            list_two.push(parts[1].parse::<i32>().unwrap());
-        }
+        let (list_one, list_two) = parse_columns(lines);
 
         let frequency_map = list_two.iter().fold(HashMap::new(), |mut map, item| {
             *map.entry(*item).or_insert(0) += 1;
@@ -49,4 +37,16 @@ impl Solution for S {
 
         Some(format!("{}", total_similarity))
     }
+}
+
+fn parse_columns(lines: &[&str]) -> (Vec<i32>, Vec<i32>) {
+    let mut list_one = Vec::new();
+    let mut list_two = Vec::new();
+
+    for line in lines {
+        let parts = line.split_whitespace().collect::<Vec<&str>>();
+        list_one.push(parts[0].parse::<i32>().unwrap());
+        list_two.push(parts[1].parse::<i32>().unwrap());
+    }
+    (list_one, list_two)
 }

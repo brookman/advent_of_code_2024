@@ -11,13 +11,12 @@ where
 {
     read_lines(filename)
         .unwrap()
-        .into_iter()
-        .filter_map(|r| r.ok())
+        .map_while(Result::ok)
         .map(|s| s.parse::<T>().unwrap())
         .collect()
 }
 
-pub fn parsed<T>(lines: &Vec<String>) -> Vec<T>
+pub fn parsed<T>(lines: &[String]) -> Vec<T>
 where
     T: FromStr,
     <T as FromStr>::Err: Debug,
@@ -28,8 +27,7 @@ where
 pub fn read_strings(filename: &str) -> Vec<String> {
     read_lines(filename)
         .unwrap()
-        .into_iter()
-        .filter_map(|r| r.ok())
+        .map_while(Result::ok)
         .collect()
 }
 
@@ -44,6 +42,6 @@ where
 }
 
 pub trait Solution {
-    fn solve_one(&self, input: &str, lines: &[&str]) -> Option<String>;
-    fn solve_two(&self, input: &str, lines: &[&str]) -> Option<String>;
+    fn solve_one(&self, _input: &str, _lines: &[&str]) -> Option<String>;
+    fn solve_two(&self, _input: &str, _lines: &[&str]) -> Option<String>;
 }
