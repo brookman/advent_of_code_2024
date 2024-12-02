@@ -4,42 +4,14 @@ pub struct S {}
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
-        let mut safe_lines = 0;
-        for line in &input.lines {
-            let levels = line
-                .split_whitespace()
-                .map(|s| s.parse::<i32>().unwrap())
-                .collect::<Vec<_>>();
-            if is_safe(&levels) {
-                safe_lines += 1;
-            }
-        }
+        let lines = input.parsed2d::<i32>();
+        let safe_lines = lines.iter().filter(|line| is_safe(line)).count();
         Some(format!("{}", safe_lines))
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
-        let mut safe_lines = 0;
-        for line in &input.lines {
-            let levels = line
-                .split_whitespace()
-                .map(|s| s.parse::<i32>().unwrap())
-                .collect::<Vec<_>>();
-
-            if is_safe(&levels) {
-                safe_lines += 1;
-                continue;
-            }
-
-            for i in 0..levels.len() {
-                let mut levels_removed = levels.clone();
-                levels_removed.remove(i);
-
-                if is_safe(&levels_removed) {
-                    safe_lines += 1;
-                    break;
-                }
-            }
-        }
+        let lines = input.parsed2d::<i32>();
+        let safe_lines = lines.iter().filter(|line| is_safe_dampened(line)).count();
         Some(format!("{}", safe_lines))
     }
 }
@@ -57,4 +29,20 @@ fn is_safe(levels: &[i32]) -> bool {
     let all_negative = diffs.iter().all(|diff| *diff < 0);
     let all_positive = diffs.iter().all(|diff| *diff > 0);
     steps_safe && (all_negative || all_positive)
+}
+
+fn is_safe_dampened(levels: &[i32]) -> bool {
+    if is_safe(levels) {
+        return true;
+    }
+
+    for i in 0..levels.len() {
+        let mut levels_removed = Vec::from(levels);
+        levels_removed.remove(i);
+
+        if is_safe(&levels_removed) {
+            return true;
+        }
+    }
+    false
 }

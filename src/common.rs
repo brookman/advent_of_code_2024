@@ -47,6 +47,21 @@ impl PuzzleInput {
     {
         self.lines.iter().map(|s| s.parse::<T>().unwrap()).collect()
     }
+
+    pub fn parsed2d<T>(&self) -> Vec<Vec<T>>
+    where
+        T: FromStr,
+        <T as FromStr>::Err: Debug,
+    {
+        self.lines
+            .iter()
+            .map(|line| {
+                line.split_whitespace()
+                    .map(|s| s.parse::<T>().unwrap())
+                    .collect::<Vec<T>>()
+            })
+            .collect()
+    }
 }
 
 pub trait Solution {
