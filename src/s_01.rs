@@ -6,7 +6,7 @@ pub struct S {}
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
-        let (mut list_one, mut list_two) = parse_columns(&input);
+        let (mut list_one, mut list_two) = parse_columns(input);
 
         list_one.sort();
         list_two.sort();
@@ -21,7 +21,7 @@ impl Solution for S {
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
-        let (list_one, list_two) = parse_columns(&input);
+        let (list_one, list_two) = parse_columns(input);
 
         let frequency_map = list_two.iter().fold(HashMap::new(), |mut map, item| {
             *map.entry(*item).or_insert(0) += 1;

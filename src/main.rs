@@ -83,9 +83,7 @@ fn main() {
 
 fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
     let input = PuzzleInput::new(&format!("input/{}.txt", day));
-    if input.is_none() {
-        return None;
-    }
+    input.as_ref()?;
     let input = input.unwrap();
     if input.input.is_empty() {
         return None;

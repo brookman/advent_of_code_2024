@@ -29,7 +29,7 @@ pub struct PuzzleInput {
 
 impl PuzzleInput {
     pub fn new(file_path: &str) -> Option<Self> {
-        let input = fs::read_to_string(&file_path).unwrap_or_default();
+        let input = fs::read_to_string(file_path).unwrap_or_default();
         if input.is_empty() {
             return None;
         }
