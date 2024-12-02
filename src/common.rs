@@ -40,6 +40,14 @@ impl PuzzleInput {
         })
     }
 
+    pub fn from_str(input: &str) -> Option<Self> {
+        let lines = input.lines().map(|s| s.to_string()).collect();
+        Some(Self {
+            input: input.to_string(),
+            lines,
+        })
+    }
+
     pub fn parsed<T>(&self) -> Vec<T>
     where
         T: FromStr,
@@ -65,6 +73,12 @@ impl PuzzleInput {
 }
 
 pub trait Solution {
+    fn test_one(&self) -> (&str, &str) {
+        ("", "")
+    }
+    fn test_two(&self) -> (&str, &str) {
+        ("", "")
+    }
     fn solve_one(&self, input: &PuzzleInput) -> Option<String>;
     fn solve_two(&self, input: &PuzzleInput) -> Option<String>;
 }

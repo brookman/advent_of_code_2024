@@ -3,6 +3,32 @@ use crate::common::*;
 pub struct S {}
 
 impl Solution for S {
+    fn test_one(&self) -> (&str, &str) {
+        (
+            r#"7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+"#,
+            "2",
+        )
+    }
+
+    fn test_two(&self) -> (&str, &str) {
+        (
+            r#"7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+"#,
+            "4",
+        )
+    }
+
     fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
         let lines = input.parsed2d::<i32>();
         let safe_lines = lines.iter().filter(|line| is_safe(line)).count();

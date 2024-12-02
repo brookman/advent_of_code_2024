@@ -5,6 +5,32 @@ use crate::common::*;
 pub struct S {}
 
 impl Solution for S {
+    fn test_one(&self) -> (&str, &str) {
+        (
+            r#"3   4
+4   3
+2   5
+1   3
+3   9
+3   3
+"#,
+            "11",
+        )
+    }
+
+    fn test_two(&self) -> (&str, &str) {
+        (
+            r#"3   4
+4   3
+2   5
+1   3
+3   9
+3   3
+"#,
+            "31",
+        )
+    }
+
     fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
         let (mut list_one, mut list_two) = parse_columns(input);
 

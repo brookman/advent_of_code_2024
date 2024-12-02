@@ -92,6 +92,12 @@ fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
     println!("\nDecember {}, 2024", day);
 
     println!("--- Part One ---");
+    let (test_input, expected_output) = solution.test_one();
+    if !test_input.is_empty() {
+        let test_input = PuzzleInput::from_str(test_input).unwrap();
+        let actual_output = solution.solve_one(&test_input).unwrap();
+        assert_eq!(actual_output, expected_output, "test for part one failed");
+    }
     let start = Instant::now();
     let result = solution.solve_one(&input);
     let elapsed = start.elapsed();
@@ -102,6 +108,12 @@ fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
     }
 
     println!("--- Part Two ---");
+    let (test_input, expected_output) = solution.test_two();
+    if !test_input.is_empty() {
+        let test_input = PuzzleInput::from_str(test_input).unwrap();
+        let actual_output = solution.solve_two(&test_input).unwrap();
+        assert_eq!(actual_output, expected_output, "test for part two failed");
+    }
     let start = Instant::now();
     let result = solution.solve_two(&input);
     let elapsed = start.elapsed();
