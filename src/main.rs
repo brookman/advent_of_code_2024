@@ -1,9 +1,9 @@
 use std::{
-    fs, thread,
+    thread,
     time::{Duration, Instant},
 };
 
-use common::Solution;
+use common::{PuzzleInput, Solution};
 use itertools::Itertools;
 
 mod common;
@@ -74,6 +74,7 @@ fn main() {
     for (i, solution) in sorted_solutions {
         let result = solve(solution, format!("{:02}", i).as_str());
         if result.is_some() && wait {
+            // wait 3 seconds after printing the latest solution
             thread::sleep(Duration::from_secs(3));
             wait = false;
         }
@@ -81,17 +82,20 @@ fn main() {
 }
 
 fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
-    let input = fs::read_to_string(format!("input/{}.txt", day)).unwrap();
-    if input.is_empty() {
+    let input = PuzzleInput::new(&format!("input/{}.txt", day));
+    if input.is_none() {
         return None;
     }
-    let lines: Vec<&str> = input.lines().collect();
+    let input = input.unwrap();
+    if input.input.is_empty() {
+        return None;
+    }
 
     println!("\nDecember {}, 2024", day);
 
     println!("--- Part One ---");
     let start = Instant::now();
-    let result = solution.solve_one(&input, &lines);
+    let result = solution.solve_one(&input);
     let elapsed = start.elapsed();
     if result.is_some() {
         println!("{}     in {:?}", result.unwrap(), elapsed);
@@ -101,7 +105,7 @@ fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
 
     println!("--- Part Two ---");
     let start = Instant::now();
-    let result = solution.solve_two(&input, &lines);
+    let result = solution.solve_two(&input);
     let elapsed = start.elapsed();
     if result.is_some() {
         println!("{}     in {:?}", result.unwrap(), elapsed);

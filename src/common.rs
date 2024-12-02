@@ -1,28 +1,9 @@
 #![allow(dead_code)]
 use std::fmt::Debug;
+use std::fs;
 use std::io::{BufRead, BufReader, Lines, Result};
 use std::str::FromStr;
 use std::{fs::File, path::Path};
-
-pub fn read_parsed<T>(filename: &str) -> Vec<T>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    read_lines(filename)
-        .unwrap()
-        .map_while(Result::ok)
-        .map(|s| s.parse::<T>().unwrap())
-        .collect()
-}
-
-pub fn parsed<T>(lines: &[String]) -> Vec<T>
-where
-    T: FromStr,
-    <T as FromStr>::Err: Debug,
-{
-    lines.iter().map(|s| s.parse::<T>().unwrap()).collect()
-}
 
 pub fn read_strings(filename: &str) -> Vec<String> {
     read_lines(filename)
@@ -41,7 +22,34 @@ where
     Ok(BufReader::new(file).lines())
 }
 
+pub struct PuzzleInput {
+    pub input: String,
+    pub lines: Vec<String>,
+}
+
+impl PuzzleInput {
+    pub fn new(file_path: &str) -> Option<Self> {
+        let input = fs::read_to_string(&file_path).unwrap_or_default();
+        if input.is_empty() {
+            return None;
+        }
+        let lines = input.lines().map(|s| s.to_string()).collect();
+        Some(Self {
+            input: input.to_string(),
+            lines,
+        })
+    }
+
+    pub fn parsed<T>(&self) -> Vec<T>
+    where
+        T: FromStr,
+        <T as FromStr>::Err: Debug,
+    {
+        self.lines.iter().map(|s| s.parse::<T>().unwrap()).collect()
+    }
+}
+
 pub trait Solution {
-    fn solve_one(&self, _input: &str, _lines: &[&str]) -> Option<String>;
-    fn solve_two(&self, _input: &str, _lines: &[&str]) -> Option<String>;
+    fn solve_one(&self, input: &PuzzleInput) -> Option<String>;
+    fn solve_two(&self, input: &PuzzleInput) -> Option<String>;
 }

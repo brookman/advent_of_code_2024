@@ -5,8 +5,8 @@ use crate::common::*;
 pub struct S {}
 
 impl Solution for S {
-    fn solve_one(&self, _input: &str, lines: &[&str]) -> Option<String> {
-        let (mut list_one, mut list_two) = parse_columns(lines);
+    fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
+        let (mut list_one, mut list_two) = parse_columns(&input);
 
         list_one.sort();
         list_two.sort();
@@ -20,8 +20,8 @@ impl Solution for S {
         Some(format!("{}", distance_sum))
     }
 
-    fn solve_two(&self, _input: &str, lines: &[&str]) -> Option<String> {
-        let (list_one, list_two) = parse_columns(lines);
+    fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
+        let (list_one, list_two) = parse_columns(&input);
 
         let frequency_map = list_two.iter().fold(HashMap::new(), |mut map, item| {
             *map.entry(*item).or_insert(0) += 1;
@@ -39,11 +39,11 @@ impl Solution for S {
     }
 }
 
-fn parse_columns(lines: &[&str]) -> (Vec<i32>, Vec<i32>) {
+fn parse_columns(input: &PuzzleInput) -> (Vec<i32>, Vec<i32>) {
     let mut list_one = Vec::new();
     let mut list_two = Vec::new();
 
-    for line in lines {
+    for line in &input.lines {
         let parts = line.split_whitespace().collect::<Vec<&str>>();
         list_one.push(parts[0].parse::<i32>().unwrap());
         list_two.push(parts[1].parse::<i32>().unwrap());
