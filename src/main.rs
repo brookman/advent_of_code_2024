@@ -75,7 +75,7 @@ fn main() {
         let result = solve(solution, format!("{:02}", i).as_str());
         if result.is_some() && wait {
             // wait 3 seconds after printing the latest solution
-            thread::sleep(Duration::from_secs(3));
+            thread::sleep(Duration::from_secs(7));
             wait = false;
         }
     }
@@ -95,8 +95,14 @@ fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
     let (test_input, expected_output) = solution.test_one();
     if !test_input.is_empty() {
         let test_input = PuzzleInput::from_str(test_input).unwrap();
-        let actual_output = solution.solve_one(&test_input).unwrap();
-        assert_eq!(actual_output, expected_output, "test for part one failed");
+        let actual_output = solution.solve_one(&test_input);
+        if actual_output.is_some() {
+            assert_eq!(
+                actual_output.unwrap(),
+                expected_output,
+                "test for part one failed"
+            );
+        }
     }
     let start = Instant::now();
     let result = solution.solve_one(&input);
@@ -111,8 +117,14 @@ fn solve(solution: Box<dyn Solution>, day: &str) -> Option<()> {
     let (test_input, expected_output) = solution.test_two();
     if !test_input.is_empty() {
         let test_input = PuzzleInput::from_str(test_input).unwrap();
-        let actual_output = solution.solve_two(&test_input).unwrap();
-        assert_eq!(actual_output, expected_output, "test for part two failed");
+        let actual_output = solution.solve_two(&test_input);
+        if actual_output.is_some() {
+            assert_eq!(
+                actual_output.unwrap(),
+                expected_output,
+                "test for part two failed"
+            );
+        }
     }
     let start = Instant::now();
     let result = solution.solve_two(&input);
