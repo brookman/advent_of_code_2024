@@ -9,7 +9,8 @@ use itertools::Itertools;
 mod common;
 mod s_01;
 mod s_02;
-mod s_03;
+//mod s_03;
+mod s_03_2;
 mod s_04;
 mod s_05;
 mod s_06;
@@ -37,7 +38,7 @@ fn main() {
     let solutions: Vec<Box<dyn Solution>> = vec![
         Box::new(s_01::S {}),
         Box::new(s_02::S {}),
-        Box::new(s_03::S {}),
+        Box::new(s_03_2::S {}),
         Box::new(s_04::S {}),
         Box::new(s_05::S {}),
         Box::new(s_06::S {}),
