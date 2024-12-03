@@ -5,22 +5,50 @@ use nom::{
     bytes::complete::{tag, take_while_m_n},
     character::complete::{anychar, char},
     combinator::{map, map_res},
-    error::ParseError,
     multi::fold_many0,
     sequence::{delimited, separated_pair},
-    IResult, InputLength, Parser,
+    IResult,
 };
 
 type R<'a, T> = IResult<&'a str, T>;
-type Context<'a> = (&'a str, (bool, u32));
 
 pub struct S {}
 
 #[derive(Clone, Debug)]
-enum OperationType {
+enum Operation {
     Mul(u32, u32),
     Do,
     Dont,
+}
+
+#[derive(Clone, Debug)]
+struct Context {
+    enabled: bool,
+    sum: u32,
+}
+
+impl Context {
+    fn new() -> Self {
+        Self {
+            enabled: true,
+            sum: 0,
+        }
+    }
+
+    pub fn add(mut self, op: Option<Operation>) -> Self {
+        if let Some(op) = op {
+            match op {
+                Operation::Mul(a, b) => {
+                    if self.enabled {
+                        self.sum += a * b
+                    }
+                }
+                Operation::Do => self.enabled = true,
+                Operation::Dont => self.enabled = false,
+            }
+        }
+        self
+    }
 }
 
 impl Solution for S {
@@ -41,44 +69,40 @@ impl Solution for S {
     }
 
     fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
-        let ops = alt((map(parse_mul, Some), consume_invalid));
-        let result = parse_and_sum(&input.input, ops);
+        let operations = parse_mul;
+        let result = parse_operations_and_sum(&input.input, operations);
         Some(format!("{}", result))
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
-        let ops = alt((
-            map(alt((parse_mul, parse_do, parse_dont)), Some),
-            consume_invalid,
-        ));
-        let result = parse_and_sum(&input.input, ops);
+        let operations = alt((parse_mul, parse_do, parse_dont));
+        let result = parse_operations_and_sum(&input.input, operations);
         Some(format!("{}", result))
     }
 }
 
-fn parse_and_sum<'a>(input: &'a str, f: impl FnMut(&'a str) -> R<Option<OperationType>>) -> u32 {
-    fold_many0(
-        f,
-        || (1, 0),
-        |(enabled, result), op| match op {
-            Some(OperationType::Mul(a, b)) => (enabled, result + enabled * a * b),
-            Some(OperationType::Do) => (1, result),
-            Some(OperationType::Dont) => (0, result),
-            _ => (enabled, result),
-        },
+fn parse_operations_and_sum<'a>(
+    input: &'a str,
+    operation_parser: impl FnMut(&'a str) -> IResult<&'a str, Operation>,
+) -> u32 {
+    let context = fold_many0(
+        // either an operation (-> Some) or anychar else (-> None)
+        alt((map(operation_parser, Some), map(anychar, |_| None))),
+        Context::new,
+        Context::add,
     )(input)
     .unwrap()
-    .1
-     .1
+    .1;
+    context.sum
 }
 
-fn parse_mul(input: &str) -> R<OperationType> {
+fn parse_mul(input: &str) -> R<Operation> {
     let operands = delimited(
         tag("mul("),
         separated_pair(parse_number, char(','), parse_number),
         char(')'),
     );
-    map(operands, |(a, b)| OperationType::Mul(a as u32, b as u32))(input)
+    map(operands, |(a, b)| Operation::Mul(a as u32, b as u32))(input)
 }
 
 fn parse_number(input: &str) -> R<u16> {
@@ -86,14 +110,10 @@ fn parse_number(input: &str) -> R<u16> {
     map_res(digits, |s: &str| s.parse::<u16>())(input)
 }
 
-fn parse_do(input: &str) -> R<OperationType> {
-    map(tag("do()"), |_| OperationType::Do)(input)
+fn parse_do(input: &str) -> R<Operation> {
+    map(tag("do()"), |_| Operation::Do)(input)
 }
 
-fn parse_dont(input: &str) -> R<OperationType> {
-    map(tag("don't()"), |_| OperationType::Dont)(input)
-}
-
-fn consume_invalid(input: &str) -> R<Option<OperationType>> {
-    map(anychar, |_| None)(input)
+fn parse_dont(input: &str) -> R<Operation> {
+    map(tag("don't()"), |_| Operation::Dont)(input)
 }
