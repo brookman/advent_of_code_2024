@@ -73,12 +73,19 @@ impl PuzzleInput {
 }
 
 pub trait Solution {
-    fn test_one(&self) -> (&str, &str) {
-        ("", "")
+    fn solve_one(&self, input: &PuzzleInput) -> String;
+    fn test_input_one(&self) -> &str {
+        ""
     }
-    fn test_two(&self) -> (&str, &str) {
-        ("", "")
+    fn expected_output_one(&self) -> &str {
+        ""
     }
-    fn solve_one(&self, input: &PuzzleInput) -> Option<String>;
-    fn solve_two(&self, input: &PuzzleInput) -> Option<String>;
+
+    fn solve_two(&self, input: &PuzzleInput) -> String;
+    fn test_input_two(&self) -> &str {
+        ""
+    }
+    fn expected_output_two(&self) -> &str {
+        ""
+    }
 }

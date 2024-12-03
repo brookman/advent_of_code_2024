@@ -12,8 +12,6 @@ use nom::{
 
 type R<'a, T> = IResult<&'a str, T>;
 
-pub struct S {}
-
 #[derive(Clone, Debug)]
 enum Operation {
     Mul(u32, u32),
@@ -51,33 +49,33 @@ impl Context {
     }
 }
 
+pub struct S;
+
 impl Solution for S {
-    fn test_one(&self) -> (&str, &str) {
-        (
-            r#"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
-"#,
-            "161",
-        )
-    }
-
-    fn test_two(&self) -> (&str, &str) {
-        (
-            r#"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
-"#,
-            "48",
-        )
-    }
-
-    fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
+    fn solve_one(&self, input: &PuzzleInput) -> String {
         let operations = parse_mul;
-        let result = parse_operations_and_sum(&input.input, operations);
-        Some(format!("{}", result))
+        parse_operations_and_sum(&input.input, operations).to_string()
     }
 
-    fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
+    fn test_input_one(&self) -> &str {
+        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"
+    }
+
+    fn expected_output_one(&self) -> &str {
+        "161"
+    }
+
+    fn solve_two(&self, input: &PuzzleInput) -> String {
         let operations = alt((parse_mul, parse_do, parse_dont));
-        let result = parse_operations_and_sum(&input.input, operations);
-        Some(format!("{}", result))
+        parse_operations_and_sum(&input.input, operations).to_string()
+    }
+
+    fn test_input_two(&self) -> &str {
+        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+    }
+
+    fn expected_output_two(&self) -> &str {
+        "48"
     }
 }
 

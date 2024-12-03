@@ -5,8 +5,6 @@ use crate::common::*;
 use lazy_static::lazy_static;
 use regex::Regex;
 
-pub struct S {}
-
 lazy_static! {
     static ref MUL: Regex = Regex::new(r"mul\((\d{1,3}),(\d{1,3})\)").unwrap();
     static ref DO: Regex = Regex::new(r"do\(\)").unwrap();
@@ -26,24 +24,10 @@ struct Operation {
     operation: OperationType,
 }
 
+pub struct S;
+
 impl Solution for S {
-    fn test_one(&self) -> (&str, &str) {
-        (
-            r#"xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))
-"#,
-            "161",
-        )
-    }
-
-    fn test_two(&self) -> (&str, &str) {
-        (
-            r#"xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
-"#,
-            "48",
-        )
-    }
-
-    fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
+    fn solve_one(&self, input: &PuzzleInput) -> String {
         let operations = parse_operations(input);
 
         let result: i32 = operations
@@ -54,10 +38,18 @@ impl Solution for S {
             })
             .sum();
 
-        Some(format!("{}", result))
+        result.to_string()
     }
 
-    fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
+    fn test_input_one(&self) -> &str {
+        "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))"
+    }
+
+    fn expected_output_one(&self) -> &str {
+        "161"
+    }
+
+    fn solve_two(&self, input: &PuzzleInput) -> String {
         let operations = parse_operations(input);
 
         let mut result = 0;
@@ -75,7 +67,15 @@ impl Solution for S {
             }
         }
 
-        Some(format!("{}", result))
+        result.to_string()
+    }
+
+    fn test_input_two(&self) -> &str {
+        "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))"
+    }
+
+    fn expected_output_two(&self) -> &str {
+        "48"
     }
 }
 

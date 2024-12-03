@@ -1,44 +1,42 @@
 use crate::common::*;
 
-pub struct S {}
+pub struct S;
+
+const TEST: &str = r#"7 6 4 2 1
+1 2 7 8 9
+9 7 6 2 1
+1 3 2 4 5
+8 6 4 4 1
+1 3 6 7 9
+"#;
 
 impl Solution for S {
-    fn test_one(&self) -> (&str, &str) {
-        (
-            r#"7 6 4 2 1
-1 2 7 8 9
-9 7 6 2 1
-1 3 2 4 5
-8 6 4 4 1
-1 3 6 7 9
-"#,
-            "2",
-        )
-    }
-
-    fn test_two(&self) -> (&str, &str) {
-        (
-            r#"7 6 4 2 1
-1 2 7 8 9
-9 7 6 2 1
-1 3 2 4 5
-8 6 4 4 1
-1 3 6 7 9
-"#,
-            "4",
-        )
-    }
-
-    fn solve_one(&self, input: &PuzzleInput) -> Option<String> {
+    fn solve_one(&self, input: &PuzzleInput) -> String {
         let lines = input.parsed2d::<i32>();
         let safe_lines = lines.iter().filter(|line| is_safe(line)).count();
-        Some(format!("{}", safe_lines))
+        safe_lines.to_string()
     }
 
-    fn solve_two(&self, input: &PuzzleInput) -> Option<String> {
+    fn test_input_one(&self) -> &str {
+        TEST
+    }
+
+    fn expected_output_one(&self) -> &str {
+        "2"
+    }
+
+    fn solve_two(&self, input: &PuzzleInput) -> String {
         let lines = input.parsed2d::<i32>();
         let safe_lines = lines.iter().filter(|line| is_safe_dampened(line)).count();
-        Some(format!("{}", safe_lines))
+        safe_lines.to_string()
+    }
+
+    fn test_input_two(&self) -> &str {
+        TEST
+    }
+
+    fn expected_output_two(&self) -> &str {
+        "4"
     }
 }
 
