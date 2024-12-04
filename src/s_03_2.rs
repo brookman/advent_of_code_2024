@@ -83,14 +83,13 @@ fn parse_operations_and_sum<'a>(
     input: &'a str,
     operation_parser: impl FnMut(&'a str) -> IResult<&'a str, Operation>,
 ) -> u32 {
-    let context = fold_many0(
+    let (_, context) = fold_many0(
         // either an operation (-> Some) or anychar else (-> None)
         alt((map(operation_parser, Some), map(anychar, |_| None))),
         Context::new,
         Context::add,
     )(input)
-    .unwrap()
-    .1;
+    .unwrap();
     context.sum
 }
 
