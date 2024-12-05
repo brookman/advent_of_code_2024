@@ -51,15 +51,14 @@ where
 {
     fn window2d(
         &self,
-        width: usize,
-        height: usize,
+        shape: (usize,usize),
     ) -> impl Iterator<Item = Grid2d<T>> + use<'_, T> {
         self.array
-            .windows((height, width))
+            .windows(shape)
             .into_iter()
             .map(move |w| Grid2d {
-                width,
-                height,
+                width: shape.0,
+                height: shape.1,
                 array: w.to_owned(),
             })
     }
@@ -103,8 +102,8 @@ impl Solution for S {
 
         let horizontal = Grid2d::new("XMAS");
         let horizontal_r = Grid2d::new("SAMX");
-        let vertical = Grid2d::new("X\nM\nA\nS\n");
-        let vertical_r = Grid2d::new("S\nA\nM\nX\n");
+        let vertical = Grid2d::new("X\nM\nA\nS");
+        let vertical_r = Grid2d::new("S\nA\nM\nX");
         let diagonal_1 = Grid2d::new("X...\n.M..\n..A.\n...S");
         let diagonal_2 = Grid2d::new("S...\n.A..\n..M.\n...X");
         let diagonal_3 = Grid2d::new("...X\n..M.\n.A..\nS...");
@@ -112,19 +111,19 @@ impl Solution for S {
 
         let mut result = 0;
 
-        for w in grid.window2d(4, 1) {
+        for w in grid.window2d((4, 1)) {
             if w.matches(&horizontal) || w.matches(&horizontal_r) {
                 result += 1;
             }
         }
 
-        for w in grid.window2d(1, 4) {
+        for w in grid.window2d((1, 4)) {
             if w.matches(&vertical) || w.matches(&vertical_r) {
                 result += 1;
             }
         }
 
-        for w in grid.window2d(4, 4) {
+        for w in grid.window2d((4, 4)) {
             if w.matches(&diagonal_1)
                 || w.matches(&diagonal_2)
                 || w.matches(&diagonal_3)
@@ -164,7 +163,7 @@ MXMXAXMASX"#
 
         let mut result = 0;
 
-        for w in grid.window2d(3, 3) {
+        for w in grid.window2d((3, 3)) {
             if w.matches(&mas_1) || w.matches(&mas_2) || w.matches(&mas_3) || w.matches(&mas_4) {
                 result += 1;
             }
