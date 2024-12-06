@@ -20,20 +20,6 @@ impl MapTile {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-struct Guard {
-    pos: (usize, usize),
-    direction: Direction,
-}
-
 impl Display for MapTile {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -43,6 +29,43 @@ impl Display for MapTile {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
+}
+
+impl Direction {
+    fn from_char(c: char) -> Option<Self> {
+        match c {
+            '^' => Some(Self::Up),
+            '>' => Some(Self::Right),
+            'v' => Some(Self::Down),
+            '<' => Some(Self::Left),
+            _ => None,
+        }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Up => write!(f, "^"),
+            Self::Right => write!(f, ">"),
+            Self::Down => write!(f, "v"),
+            Self::Left => write!(f, "<"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct Guard {
+    pos: (usize, usize),
+    direction: Direction,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Grid2d {
     width: usize,
@@ -50,19 +73,19 @@ pub struct Grid2d {
     map: Array2<MapTile>,
     guard: Option<Guard>,
     visited: HashSet<(usize, usize)>,
-    visited_with_dir: HashSet<(usize, usize, Direction)>,
+    visited_with_dir: HashSet<Guard>,
 }
 
 impl Grid2d {
-    fn new(string: &str) -> Self {
-        let lines: Vec<String> = string.lines().map(|s| s.to_string()).collect();
-        let width = lines[0].len();
-        let height = lines.len();
+    fn new(input: &PuzzleInput) -> Self {
+        let width = input.lines[0].len();
+        let height = input.lines.len();
         let shape = (height, width);
 
-        let chars = lines
-            .iter()
-            .flat_map(|line| line.chars())
+        let chars = input
+            .input
+            .chars()
+            .filter(|c| !c.is_whitespace())
             .collect::<Vec<_>>();
 
         let map_tiles = chars
@@ -73,63 +96,31 @@ impl Grid2d {
 
         let map = Array2::from_shape_vec(shape, map_tiles).expect("Shape mismatch");
 
-        let guard_up = chars.iter().position(|c| *c == '^').map(|i| {
-            let x = i % width;
-            let y = i / width;
-            let pos = (x, y);
-            Guard {
-                pos,
-                direction: Direction::Up,
-            }
-        });
+        let guard = chars
+            .iter()
+            .enumerate()
+            .filter_map(|(i, c)| match c {
+                '^' => Some((i, Direction::Up)),
+                '>' => Some((i, Direction::Right)),
+                'v' => Some((i, Direction::Down)),
+                '<' => Some((i, Direction::Left)),
+                _ => None,
+            })
+            .map(|(i, direction)| {
+                let pos = (i % width, i / width);
+                Guard { pos, direction }
+            })
+            .next();
 
-        let guard_right = chars.iter().position(|c| *c == '>').map(|i| {
-            let x = i % width;
-            let y = i / width;
-            let pos = (x, y);
-            Guard {
-                pos,
-                direction: Direction::Right,
-            }
-        });
-
-        let guard_down = chars.iter().position(|c| *c == 'v').map(|i| {
-            let x = i % width;
-            let y = i / width;
-            let pos = (x, y);
-            Guard {
-                pos,
-                direction: Direction::Down,
-            }
-        });
-
-        let guard_left = chars.iter().position(|c| *c == '<').map(|i| {
-            let x = i % width;
-            let y = i / width;
-            let pos = (x, y);
-            Guard {
-                pos,
-                direction: Direction::Left,
-            }
-        });
-
-        let guard = if guard_up.is_some() {
-            guard_up.unwrap()
-        } else if guard_right.is_some() {
-            guard_right.unwrap()
-        } else if guard_down.is_some() {
-            guard_down.unwrap()
-        } else if guard_left.is_some() {
-            guard_left.unwrap()
-        } else {
-            panic!("No guard found")
-        };
+        if guard.is_none() {
+            panic!("No guard found");
+        }
 
         Self {
             width,
             height,
             map,
-            guard: Some(guard),
+            guard,
             visited: HashSet::new(),
             visited_with_dir: HashSet::new(),
         }
@@ -172,12 +163,7 @@ impl Grid2d {
         for y in 0..self.height {
             for x in 0..self.width {
                 if self.guard.is_some() && self.guard.unwrap().pos == (x, y) {
-                    result.push_str(match self.guard.unwrap().direction {
-                        Direction::Up => "^",
-                        Direction::Right => ">",
-                        Direction::Down => "v",
-                        Direction::Left => "<",
-                    });
+                    result.push_str(&self.guard.unwrap().direction.to_string());
                 } else if self.visited.contains(&(x, y)) {
                     result.push('X');
                 } else {
@@ -198,12 +184,11 @@ impl Grid2d {
         while self.guard.is_some() {
             let guard = self.guard.unwrap();
             self.visited.insert(guard.pos);
-            let pos_dir = (guard.pos.0, guard.pos.1, guard.direction);
-            if self.visited_with_dir.contains(&pos_dir) {
-                println!("loop detected");
+
+            if self.visited_with_dir.contains(&guard) {
                 return None;
             }
-            self.visited_with_dir.insert(pos_dir);
+            self.visited_with_dir.insert(guard);
 
             let next_pos = match guard.direction {
                 Direction::Up => (guard.pos.0 as i32, guard.pos.1 as i32 - 1),
@@ -252,11 +237,8 @@ impl Display for Grid2d {
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
-        let mut grid = Grid2d::new(&input.input);
-
+        let mut grid = Grid2d::new(input);
         let result = grid.solve().unwrap();
-        println!("{}", grid);
-
         result.to_string()
     }
 
@@ -278,7 +260,7 @@ impl Solution for S {
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> String {
-        let mut grid = Grid2d::new(&input.input);
+        let grid = Grid2d::new(input);
 
         let mut result = 0;
 
