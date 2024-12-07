@@ -49,18 +49,12 @@ impl<T> Grid2d<T>
 where
     T: Clone,
 {
-    fn window2d(
-        &self,
-        shape: (usize,usize),
-    ) -> impl Iterator<Item = Grid2d<T>> + use<'_, T> {
-        self.array
-            .windows(shape)
-            .into_iter()
-            .map(move |w| Grid2d {
-                width: shape.0,
-                height: shape.1,
-                array: w.to_owned(),
-            })
+    fn window2d(&self, shape: (usize, usize)) -> impl Iterator<Item = Grid2d<T>> + use<'_, T> {
+        self.array.windows(shape).into_iter().map(move |w| Grid2d {
+            width: shape.0,
+            height: shape.1,
+            array: w.to_owned(),
+        })
     }
 }
 
