@@ -9,8 +9,8 @@ pub struct S;
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
-        let operators = ['+', '*'];
-        solve(input, &operators).to_string()
+        const OPERATORS: [char; 2] = ['+', '*'];
+        solve(input, &OPERATORS).to_string()
     }
 
     fn test_input_one(&self) -> &str {
@@ -31,8 +31,8 @@ impl Solution for S {
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> String {
-        let operators = ['+', '*', '|'];
-        solve(input, &operators).to_string()
+        const OPERATORS: [char; 3] = ['+', '*', '|'];
+        solve(input, &OPERATORS).to_string()
     }
 
     fn test_input_two(&self) -> &str {
@@ -63,28 +63,30 @@ fn solve(input: &PuzzleInput, operators: &[char]) -> u64 {
             let rem = parts
                 .next()
                 .unwrap()
-                .trim()
-                .split(' ')
-                .map(|s| s.parse::<u64>().unwrap())
+                .split_whitespace()
+                .map(|s| s.parse::<u16>().unwrap())
                 .collect::<Vec<_>>();
-            test_for_solution(operators, &rem, test_value)
+            test_value_or_zero(operators, &rem, test_value)
         })
         .sum()
 }
 
-fn test_for_solution(operators: &[char], rem: &[u64], test_value: u64) -> u64 {
+fn test_value_or_zero(operators: &[char], rem: &[u16], test_value: u64) -> u64 {
     for op_combinations in repeat(operators.iter())
         .take(rem.len() - 1)
         .multi_cartesian_product()
     {
-        let mut res = rem[0];
+        let mut res = rem[0] as u64;
         for (i, op) in op_combinations.iter().enumerate() {
-            let a = rem[i + 1];
+            let a = rem[i + 1] as u64;
             match op {
                 '+' => res += a,
                 '*' => res *= a,
                 '|' => res = res * 10u64.pow(a.ilog10() + 1) + a,
                 _ => panic!("Unknown operator"),
+            }
+            if res >= test_value {
+                break;
             }
         }
 
