@@ -20,8 +20,8 @@ impl Solution for S {
                 .collect::<Vec<_>>();
 
             for op_combinations in std::iter::repeat(operators.iter())
-            .take(rem.len() - 1)
-            .multi_cartesian_product()
+                .take(rem.len() - 1)
+                .multi_cartesian_product()
             {
                 let mut res = rem[0];
                 for (i, op) in op_combinations.iter().enumerate() {
@@ -74,8 +74,8 @@ impl Solution for S {
                 .collect::<Vec<_>>();
 
             for op_combinations in std::iter::repeat(operators.iter())
-            .take(rem.len() - 1)
-            .multi_cartesian_product()
+                .take(rem.len() - 1)
+                .multi_cartesian_product()
             {
                 let mut res = rem[0];
                 for (i, op) in op_combinations.iter().enumerate() {
@@ -83,10 +83,11 @@ impl Solution for S {
                     match op {
                         '+' => res += a,
                         '*' => res *= a,
-                        '|' => res = format!("{res}{a}").parse::<u64>().unwrap(),
+                        '|' => res = res * 10u64.pow(a.ilog10() + 1) + a,
                         _ => panic!("Unknown operator"),
                     }
                 }
+
                 if res == test_value {
                     result += test_value;
                     break;
