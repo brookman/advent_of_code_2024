@@ -85,17 +85,17 @@ impl PuzzleInput {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Grid2d<T> {
-    width: usize,
-    height: usize,
-    vec: Vec<T>,
+    pub width: usize,
+    pub height: usize,
+    pub vec: Vec<T>,
 }
 
 impl<T> Grid2d<T> {
-    fn new(width: usize, height: usize, vec: Vec<T>) -> Self {
+    pub fn new(width: usize, height: usize, vec: Vec<T>) -> Self {
         Self { width, height, vec }
     }
 
-    fn to_pos(&self, index: i32) -> Option<(i32, i32)> {
+    pub fn to_pos(&self, index: i32) -> Option<(i32, i32)> {
         if index < 0 || index >= self.width as i32 * self.height as i32 {
             return None;
         }
@@ -104,23 +104,23 @@ impl<T> Grid2d<T> {
         Some((x, y))
     }
 
-    fn in_bounds(&self, pos: (i32, i32)) -> bool {
+    pub fn in_bounds(&self, pos: (i32, i32)) -> bool {
         pos.0 >= 0 && pos.1 >= 0 && pos.0 < self.width as i32 && pos.1 < self.height as i32
     }
 
-    fn to_index(&self, pos: (i32, i32)) -> Option<usize> {
+    pub fn to_index(&self, pos: (i32, i32)) -> Option<usize> {
         if !self.in_bounds(pos) {
             return None;
         }
         Some(pos.0 as usize + pos.1 as usize * self.width)
     }
 
-    fn get(&self, pos: (i32, i32)) -> Option<&T> {
+    pub fn get(&self, pos: (i32, i32)) -> Option<&T> {
         let index = self.to_index(pos)?;
         self.vec.get(index)
     }
 
-    fn set(&mut self, pos: (i32, i32), value: T) -> Option<()> {
+    pub fn set(&mut self, pos: (i32, i32), value: T) -> Option<()> {
         let index = self.to_index(pos)?;
         if let Some(a) = self.vec.get_mut(index) {
             *a = value;
@@ -130,14 +130,14 @@ impl<T> Grid2d<T> {
         }
     }
 
-    fn iter(&self) -> impl Iterator<Item = (i32, i32, &T)> {
+    pub fn iter(&self) -> impl Iterator<Item = (i32, i32, &T)> {
         self.vec
             .iter()
             .enumerate()
             .map(|(i, t)| ((i % self.width) as i32, (i / self.width) as i32, t))
     }
 
-    fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(i32, i32, &T)> {
+    pub fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(i32, i32, &T)> {
         self.iter().find(|(_, _, t)| f(t))
     }
 }

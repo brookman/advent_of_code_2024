@@ -1,7 +1,7 @@
-use ndarray::Array2;
-use std::{collections::HashSet, fmt::Display};
+use rayon::prelude::*;
 
 use crate::common::*;
+use std::{collections::HashSet, fmt::Display};
 
 pub struct S;
 
@@ -62,52 +62,28 @@ impl Display for Direction {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Guard {
-    pos: (usize, usize),
+    pos: (i32, i32),
     direction: Direction,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Grid2d {
-    width: usize,
-    height: usize,
-    map: Array2<MapTile>,
+pub struct Puzzle {
     guard: Option<Guard>,
-    visited: HashSet<(usize, usize)>,
+    additional_obstacle: Option<(i32, i32)>,
+    visited: HashSet<(i32, i32)>,
     visited_with_dir: HashSet<Guard>,
 }
 
-impl Grid2d {
-    fn new(input: &PuzzleInput) -> Self {
-        let width = input.lines[0].len();
-        let height = input.lines.len();
-        let shape = (height, width);
-
-        let chars = input
+impl Puzzle {
+    fn new(input: &PuzzleInput, width: usize) -> Self {
+        let guard = input
             .input
             .chars()
             .filter(|c| !c.is_whitespace())
-            .collect::<Vec<_>>();
-
-        let map_tiles = chars
-            .clone()
-            .into_iter()
-            .map(MapTile::from_char)
-            .collect::<Vec<_>>();
-
-        let map = Array2::from_shape_vec(shape, map_tiles).expect("Shape mismatch");
-
-        let guard = chars
-            .iter()
             .enumerate()
-            .filter_map(|(i, c)| match c {
-                '^' => Some((i, Direction::Up)),
-                '>' => Some((i, Direction::Right)),
-                'v' => Some((i, Direction::Down)),
-                '<' => Some((i, Direction::Left)),
-                _ => None,
-            })
+            .filter_map(|(i, c)| Direction::from_char(c).map(|direction| (i, direction)))
             .map(|(i, direction)| {
-                let pos = (i % width, i / width);
+                let pos = ((i % width) as i32, (i / width) as i32);
                 Guard { pos, direction }
             })
             .next();
@@ -117,70 +93,14 @@ impl Grid2d {
         }
 
         Self {
-            width,
-            height,
-            map,
             guard,
+            additional_obstacle: None,
             visited: HashSet::new(),
             visited_with_dir: HashSet::new(),
         }
     }
 
-    fn pos_from_index(&self, index: usize) -> (usize, usize) {
-        let x = index % self.width;
-        let y = index / self.width;
-        (x, y)
-    }
-
-    fn index_from_pos(&self, pos: (usize, usize)) -> usize {
-        pos.0 + pos.1 * self.width
-    }
-
-    fn get_pos(&self, pos: (usize, usize)) -> Option<&MapTile> {
-        self.map.get((pos.1, pos.0))
-    }
-
-    fn set_pos(&mut self, pos: (usize, usize), value: MapTile) {
-        if let Some(a) = self.map.get_mut((pos.1, pos.0)) {
-            *a = value;
-        }
-    }
-
-    fn get_index(&self, index: usize) -> Option<&MapTile> {
-        let pos = self.pos_from_index(index);
-        self.get_pos(pos)
-    }
-
-    fn set_index(&mut self, index: usize, value: MapTile) {
-        let pos = self.pos_from_index(index);
-        if let Some(a) = self.map.get_mut((pos.1, pos.0)) {
-            *a = value;
-        }
-    }
-
-    fn print(&self) -> String {
-        let mut result = String::new();
-        for y in 0..self.height {
-            for x in 0..self.width {
-                if self.guard.is_some() && self.guard.unwrap().pos == (x, y) {
-                    result.push_str(&self.guard.unwrap().direction.to_string());
-                } else if self.visited.contains(&(x, y)) {
-                    result.push('X');
-                } else {
-                    let tile = self.get_pos((x, y)).unwrap();
-                    if tile == &MapTile::Empty {
-                        result.push('.');
-                    } else {
-                        result.push('#');
-                    }
-                }
-            }
-            result.push('\n');
-        }
-        result
-    }
-
-    fn solve(&mut self) -> Option<usize> {
+    fn solve(&mut self, grid: &Grid2d<MapTile>) -> Option<usize> {
         while self.guard.is_some() {
             let guard = self.guard.unwrap();
             self.visited.insert(guard.pos);
@@ -191,20 +111,16 @@ impl Grid2d {
             self.visited_with_dir.insert(guard);
 
             let next_pos = match guard.direction {
-                Direction::Up => (guard.pos.0 as i32, guard.pos.1 as i32 - 1),
-                Direction::Right => (guard.pos.0 as i32 + 1, guard.pos.1 as i32),
-                Direction::Down => (guard.pos.0 as i32, guard.pos.1 as i32 + 1),
-                Direction::Left => (guard.pos.0 as i32 - 1, guard.pos.1 as i32),
+                Direction::Up => (guard.pos.0, guard.pos.1 - 1),
+                Direction::Right => (guard.pos.0 + 1, guard.pos.1),
+                Direction::Down => (guard.pos.0, guard.pos.1 + 1),
+                Direction::Left => (guard.pos.0 - 1, guard.pos.1),
             };
-            let is_inside = next_pos.0 >= 0
-                && next_pos.0 < self.width as i32
-                && next_pos.1 >= 0
-                && next_pos.1 < self.height as i32;
 
-            let next_pos = (next_pos.0 as usize, next_pos.1 as usize);
-
-            if is_inside {
-                if self.get_pos(next_pos).unwrap() == &MapTile::Empty {
+            if grid.in_bounds(next_pos) {
+                if grid.get(next_pos).unwrap() == &MapTile::Empty
+                    && self.additional_obstacle != Some(next_pos)
+                {
                     self.guard = Some(Guard {
                         pos: next_pos,
                         direction: guard.direction,
@@ -229,16 +145,17 @@ impl Grid2d {
     }
 }
 
-impl Display for Grid2d {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.print())
-    }
-}
+// impl Display for Grid2d {
+//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+//         write!(f, "{}", self.print())
+//     }
+// }
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
-        let mut grid = Grid2d::new(input);
-        let result = grid.solve().unwrap();
+        let grid = input.grid2d(MapTile::from_char);
+        let mut puzzle = Puzzle::new(input, grid.width);
+        let result = puzzle.solve(&grid).unwrap();
         result.to_string()
     }
 
@@ -260,22 +177,30 @@ impl Solution for S {
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> String {
-        let grid = Grid2d::new(input);
+        let grid = input.grid2d(MapTile::from_char);
+        let puzzle = Puzzle::new(input, grid.width);
+        let mut solved_puzzle = puzzle.clone();
+        solved_puzzle.solve(&grid).unwrap();
 
-        let mut result = 0;
+        let guard_pos = puzzle.guard.unwrap().pos;
+        let candiates = solved_puzzle
+            .visited
+            .into_iter()
+            .filter(|p| p != &guard_pos)
+            .collect::<Vec<_>>();
 
-        for y in 0..grid.height {
-            for x in 0..grid.width {
-                let pos = grid.get_pos((x, y)).unwrap();
-                if pos == &MapTile::Empty && grid.guard.unwrap().pos != (x, y) {
-                    let mut cloned = grid.clone();
-                    cloned.set_pos((x, y), MapTile::Obstacle);
-                    if cloned.solve().is_none() {
-                        result += 1;
-                    }
+        let result: u32 = candiates
+            .par_iter()
+            .map(|pos| {
+                let mut cloned = puzzle.clone();
+                cloned.additional_obstacle = Some(*pos);
+                if cloned.solve(&grid).is_none() {
+                    1
+                } else {
+                    0
                 }
-            }
-        }
+            })
+            .sum();
         result.to_string()
     }
 

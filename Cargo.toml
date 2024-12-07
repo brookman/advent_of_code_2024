@@ -4,8 +4,10 @@ version = "0.1.0"
 edition = "2021"
 
 [profile.release]
+#debug = false
 lto = true
 #panic = "abort"
+codegen-units = 1
 
 [dependencies]
 itertools = "0.13.0"
