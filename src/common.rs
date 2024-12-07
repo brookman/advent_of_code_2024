@@ -70,6 +70,76 @@ impl PuzzleInput {
             })
             .collect()
     }
+
+    pub fn grid2d<T>(&self, f: fn(char) -> T) -> Grid2d<T> {
+        let width = self.lines[0].len();
+        let height = self.lines.len();
+        let vec = self
+            .lines
+            .iter()
+            .flat_map(|line| line.chars().map(f).collect::<Vec<T>>())
+            .collect();
+        Grid2d::new(width, height, vec)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Grid2d<T> {
+    width: usize,
+    height: usize,
+    vec: Vec<T>,
+}
+
+impl<T> Grid2d<T> {
+    fn new(width: usize, height: usize, vec: Vec<T>) -> Self {
+        Self { width, height, vec }
+    }
+
+    fn to_pos(&self, index: i32) -> Option<(i32, i32)> {
+        if index < 0 || index >= self.width as i32 * self.height as i32 {
+            return None;
+        }
+        let x = index % self.width as i32;
+        let y = index / self.width as i32;
+        Some((x, y))
+    }
+
+    fn in_bounds(&self, pos: (i32, i32)) -> bool {
+        pos.0 >= 0 && pos.1 >= 0 && pos.0 < self.width as i32 && pos.1 < self.height as i32
+    }
+
+    fn to_index(&self, pos: (i32, i32)) -> Option<usize> {
+        if !self.in_bounds(pos) {
+            return None;
+        }
+        Some(pos.0 as usize + pos.1 as usize * self.width)
+    }
+
+    fn get(&self, pos: (i32, i32)) -> Option<&T> {
+        let index = self.to_index(pos)?;
+        self.vec.get(index)
+    }
+
+    fn set(&mut self, pos: (i32, i32), value: T) -> Option<()> {
+        let index = self.to_index(pos)?;
+        if let Some(a) = self.vec.get_mut(index) {
+            *a = value;
+            Some(())
+        } else {
+            None
+        }
+    }
+
+    fn iter(&self) -> impl Iterator<Item = (i32, i32, &T)> {
+        self.vec
+            .iter()
+            .enumerate()
+            .map(|(i, t)| ((i % self.width) as i32, (i / self.width) as i32, t))
+    }
+
+    fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(i32, i32, &T)> {
+        self.iter().find(|(_, _, t)| f(t))
+    }
 }
 
 pub trait Solution {
