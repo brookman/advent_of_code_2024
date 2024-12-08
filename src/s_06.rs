@@ -62,15 +62,15 @@ impl Display for Direction {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Guard {
-    pos: (i32, i32),
+    pos: VecI2,
     direction: Direction,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Puzzle {
     guard: Option<Guard>,
-    additional_obstacle: Option<(i32, i32)>,
-    visited: HashSet<(i32, i32)>,
+    additional_obstacle: Option<VecI2>,
+    visited: HashSet<VecI2>,
     visited_with_dir: HashSet<Guard>,
 }
 
@@ -83,7 +83,7 @@ impl Puzzle {
             .enumerate()
             .filter_map(|(i, c)| Direction::from_char(c).map(|direction| (i, direction)))
             .map(|(i, direction)| {
-                let pos = ((i % width) as i32, (i / width) as i32);
+                let pos = VecI2((i % width) as i32, (i / width) as i32);
                 Guard { pos, direction }
             })
             .next();
@@ -111,14 +111,14 @@ impl Puzzle {
             self.visited_with_dir.insert(guard);
 
             let next_pos = match guard.direction {
-                Direction::Up => (guard.pos.0, guard.pos.1 - 1),
-                Direction::Right => (guard.pos.0 + 1, guard.pos.1),
-                Direction::Down => (guard.pos.0, guard.pos.1 + 1),
-                Direction::Left => (guard.pos.0 - 1, guard.pos.1),
+                Direction::Up => guard.pos.up(),
+                Direction::Right => guard.pos.right(),
+                Direction::Down => guard.pos.down(),
+                Direction::Left => guard.pos.left(),
             };
 
-            if grid.in_bounds(next_pos) {
-                if grid.get(next_pos).unwrap() == &MapTile::Empty
+            if grid.in_bounds(&next_pos) {
+                if grid.get(&next_pos).unwrap() == &MapTile::Empty
                     && self.additional_obstacle != Some(next_pos)
                 {
                     self.guard = Some(Guard {

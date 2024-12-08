@@ -2,6 +2,7 @@
 use std::fmt::Debug;
 use std::fs;
 use std::io::{BufRead, BufReader, Lines, Result};
+use std::ops::{Add, Div, Mul, Sub};
 use std::str::FromStr;
 use std::{fs::File, path::Path};
 
@@ -95,32 +96,32 @@ impl<T> Grid2d<T> {
         Self { width, height, vec }
     }
 
-    pub fn to_pos(&self, index: i32) -> Option<(i32, i32)> {
+    pub fn to_pos(&self, index: i32) -> Option<VecI2> {
         if index < 0 || index >= self.width as i32 * self.height as i32 {
             return None;
         }
         let x = index % self.width as i32;
         let y = index / self.width as i32;
-        Some((x, y))
+        Some(VecI2(x, y))
     }
 
-    pub fn in_bounds(&self, pos: (i32, i32)) -> bool {
+    pub fn in_bounds(&self, pos: &VecI2) -> bool {
         pos.0 >= 0 && pos.1 >= 0 && pos.0 < self.width as i32 && pos.1 < self.height as i32
     }
 
-    pub fn to_index(&self, pos: (i32, i32)) -> Option<usize> {
+    pub fn to_index(&self, pos: &VecI2) -> Option<usize> {
         if !self.in_bounds(pos) {
             return None;
         }
         Some(pos.0 as usize + pos.1 as usize * self.width)
     }
 
-    pub fn get(&self, pos: (i32, i32)) -> Option<&T> {
+    pub fn get(&self, pos: &VecI2) -> Option<&T> {
         let index = self.to_index(pos)?;
         self.vec.get(index)
     }
 
-    pub fn set(&mut self, pos: (i32, i32), value: T) -> Option<()> {
+    pub fn set(&mut self, pos: &VecI2, value: T) -> Option<()> {
         let index = self.to_index(pos)?;
         if let Some(a) = self.vec.get_mut(index) {
             *a = value;
@@ -130,22 +131,22 @@ impl<T> Grid2d<T> {
         }
     }
 
-    pub fn iter(&self) -> impl Iterator<Item = (i32, i32, &T)> {
+    pub fn iter(&self) -> impl Iterator<Item = (VecI2, &T)> {
         self.vec
             .iter()
             .enumerate()
-            .map(|(i, t)| ((i % self.width) as i32, (i / self.width) as i32, t))
+            .map(|(i, t)| (VecI2((i % self.width) as i32, (i / self.width) as i32), t))
     }
 
-    pub fn iter_mut(&mut self) -> impl Iterator<Item = (i32, i32, &mut T)> {
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (VecI2, &mut T)> {
         self.vec
             .iter_mut()
             .enumerate()
-            .map(|(i, t)| ((i % self.width) as i32, (i / self.width) as i32, t))
+            .map(|(i, t)| (VecI2((i % self.width) as i32, (i / self.width) as i32), t))
     }
 
-    pub fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(i32, i32, &T)> {
-        self.iter().find(|(_, _, t)| f(t))
+    pub fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(VecI2, &T)> {
+        self.iter().find(|(_, t)| f(t))
     }
 }
 
@@ -164,5 +165,55 @@ pub trait Solution {
     }
     fn expected_output_two(&self) -> &str {
         ""
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub struct VecI2(pub i32, pub i32);
+
+impl VecI2 {
+    pub fn up(&self) -> Self {
+        Self(self.0, self.1 - 1)
+    }
+    pub fn right(&self) -> Self {
+        Self(self.0 + 1, self.1)
+    }
+    pub fn down(&self) -> Self {
+        Self(self.0, self.1 + 1)
+    }
+    pub fn left(&self) -> Self {
+        Self(self.0 - 1, self.1)
+    }
+}
+
+impl Add for VecI2 {
+    type Output = Self;
+
+    fn add(self, rhs: Self) -> Self {
+        Self(self.0 + rhs.0, self.1 + rhs.1)
+    }
+}
+
+impl Sub for VecI2 {
+    type Output = Self;
+
+    fn sub(self, rhs: Self) -> Self {
+        Self(self.0 - rhs.0, self.1 - rhs.1)
+    }
+}
+
+impl Mul<i32> for VecI2 {
+    type Output = Self;
+
+    fn mul(self, rhs: i32) -> Self {
+        Self(self.0 * rhs, self.1 * rhs)
+    }
+}
+
+impl Div<i32> for VecI2 {
+    type Output = Self;
+
+    fn div(self, rhs: i32) -> Self {
+        Self(self.0 / rhs, self.1 / rhs)
     }
 }
