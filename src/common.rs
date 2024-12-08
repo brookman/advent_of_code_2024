@@ -137,6 +137,13 @@ impl<T> Grid2d<T> {
             .map(|(i, t)| ((i % self.width) as i32, (i / self.width) as i32, t))
     }
 
+    pub fn iter_mut(&mut self) -> impl Iterator<Item = (i32, i32, &mut T)> {
+        self.vec
+            .iter_mut()
+            .enumerate()
+            .map(|(i, t)| ((i % self.width) as i32, (i / self.width) as i32, t))
+    }
+
     pub fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(i32, i32, &T)> {
         self.iter().find(|(_, _, t)| f(t))
     }
