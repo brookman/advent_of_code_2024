@@ -1,5 +1,5 @@
 use crate::common::*;
-use std::{collections::HashSet, fmt::Display, os::unix::fs::PermissionsExt};
+use std::{collections::HashSet, fmt::Display};
 
 pub struct S;
 
@@ -39,26 +39,7 @@ impl Display for Block {
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
-        let mut blocks: Vec<Block> = vec![];
-        let mut is_block = true;
-        for (i, c) in input.lines[0]
-            .chars()
-            .map(|c| c.to_digit(10).unwrap())
-            .enumerate()
-        {
-            if is_block {
-                for _ in 0..c {
-                    blocks.push(Block::Used(i / 2));
-                }
-            } else {
-                for _ in 0..c {
-                    blocks.push(Block::Empty);
-                }
-            }
-
-            is_block = !is_block;
-        }
-
+        let mut blocks = parse_blocks(input);
         let mut left = 0;
         let mut right = blocks.len() - 1;
         while left < right {
@@ -73,17 +54,7 @@ impl Solution for S {
             }
         }
 
-        let result: usize = blocks
-            .into_iter()
-            .filter(|b| b != &Block::Empty)
-            .enumerate()
-            .map(|(i, b)| match b {
-                Block::Used(id) => id * i,
-                Block::Empty => 0,
-            })
-            .sum();
-
-        result.to_string()
+        get_checksum(&blocks).to_string()
     }
 
     fn test_input_one(&self) -> &str {
@@ -113,7 +84,6 @@ impl Solution for S {
         }
 
         let mut right = blocks.len() - 1;
-
         let mut already_swapped = HashSet::new();
 
         while right > 0 {
@@ -124,7 +94,6 @@ impl Solution for S {
             let mut left = 0;
 
             while left < right {
-                //println!("\n{}", to_string(&blocks, left, right));
                 while !matches!(blocks[left], Block2::Empty(_)) {
                     left += 1;
                 }
@@ -132,7 +101,7 @@ impl Solution for S {
                 if left < right {
                     let id = match blocks[right] {
                         Block2::Empty(_) => panic!("must not be empty"),
-                        Block2::Used(id, c) => id,
+                        Block2::Used(id, _) => id,
                     };
 
                     if blocks[left].get_size() >= blocks[right].get_size()
@@ -140,7 +109,6 @@ impl Solution for S {
                     {
                         let remaining = blocks[left].get_size() - blocks[right].get_size();
                         if remaining > 0 {
-                            //println!("remaining {}", remaining);
                             blocks[left] = Block2::Empty(blocks[right].get_size());
                             blocks.insert(left + 1, Block2::Empty(remaining));
                             right += 1;
@@ -157,8 +125,6 @@ impl Solution for S {
             right -= 1;
         }
 
-        //println!("\n{}", to_string(&blocks, 0, right));
-
         let mut expanded = vec![];
         for block in blocks {
             match block {
@@ -174,18 +140,8 @@ impl Solution for S {
                 }
             }
         }
-       println!("\n{expanded:?}");
 
-       let result: usize = expanded
-       .into_iter()
-       .enumerate()
-       .map(|(i, b)| match b {
-           Block::Used(id) => id * i,
-           Block::Empty => 0,
-       })
-       .sum();
-
-   result.to_string()
+        get_checksum(&expanded).to_string()
     }
 
     fn test_input_two(&self) -> &str {
@@ -198,7 +154,44 @@ impl Solution for S {
     }
 }
 
-fn to_string(blocks: &Vec<Block2>, left: usize, right: usize) -> String {
+fn parse_blocks(input: &PuzzleInput) -> Vec<Block> {
+    let mut blocks: Vec<Block> = vec![];
+    let mut is_empty = false;
+    for (i, c) in input.lines[0]
+        .chars()
+        .map(|c| c.to_digit(10).unwrap())
+        .enumerate()
+    {
+        for _ in 0..c {
+            if is_empty {
+                blocks.push(Block::Empty);
+            } else {
+                blocks.push(Block::Used(i / 2));
+            }
+        }
+        is_empty = !is_empty;
+    }
+    blocks
+}
+
+fn to_string(blocks: &Vec<Block>) -> String {
+    let mut result = String::new();
+
+    for block in blocks {
+        match block {
+            Block::Empty => {
+                result.push('.');
+            }
+            Block::Used(i) => {
+                result.push_str(&i.to_string());
+            }
+        }
+    }
+
+    result
+}
+
+fn to_string2(blocks: &[Block2], left: usize, right: usize) -> String {
     let mut result1 = String::new();
     let mut result2 = String::new();
 
@@ -234,19 +227,13 @@ fn to_string(blocks: &Vec<Block2>, left: usize, right: usize) -> String {
     format!("{}\n{}", result1, result2)
 }
 
-fn to_string2(blocks: &Vec<Block>) -> String {
-    let mut result = String::new();
-
-    for block in blocks {
-        match block {
-            Block::Empty => {
-                result.push('.');
-            }
-            Block::Used(i) => {
-                result.push_str(&i.to_string());
-            }
-        }
-    }
-
-    result
+fn get_checksum(blocks: &[Block]) -> usize {
+    blocks
+        .iter()
+        .enumerate()
+        .map(|(i, b)| match b {
+            Block::Used(id) => id * i,
+            Block::Empty => 0,
+        })
+        .sum()
 }
