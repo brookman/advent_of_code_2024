@@ -1,4 +1,6 @@
-use std::collections::HashMap;
+use std::mem;
+
+use rustc_hash::FxHashMap;
 
 use crate::common::*;
 
@@ -36,33 +38,32 @@ fn solve(input: &PuzzleInput, blinks: usize) -> usize {
     let mut stones = input.lines[0]
         .split_whitespace()
         .map(|s| s.parse::<usize>().unwrap())
-        .fold(HashMap::new(), |mut map, item| {
-            *map.entry(item).or_insert(0usize) += 1;
+        .fold(FxHashMap::default(), |mut map, item| {
+            *map.entry(item).or_insert(0) += 1;
             map
         });
 
-    for _ in 0..blinks {
-        let mut new_stones: HashMap<usize, usize> = HashMap::with_capacity(stones.len() * 2);
+    let mut new_stones = FxHashMap::default();
+    new_stones.reserve(3771);
 
-        for (key, count) in stones {
-            let mut update = |n| {
-                *new_stones.entry(n).or_insert(0usize) += count;
-            };
-            if key == 0 {
-                update(1);
+    for _ in 0..blinks {
+        new_stones.clear();
+
+        for (num, count) in stones.iter() {
+            if *num == 0 {
+                *new_stones.entry(1).or_insert(0) += count;
             } else {
-                let number_of_digits = if key == 0 { 1 } else { key.ilog10() + 1 };
+                let number_of_digits = (*num as f32).log10().trunc() as u32 + 1;
                 if number_of_digits % 2 == 0 {
-                    let half = (number_of_digits / 2) as usize;
-                    let mask = 10usize.pow(half as u32);
-                    update(key / mask);
-                    update(key % mask);
+                    let mask = 10usize.pow(number_of_digits / 2);
+                    *new_stones.entry(num / mask).or_insert(0) += count;
+                    *new_stones.entry(num % mask).or_insert(0) += count;
                 } else {
-                    update(key * 2024);
+                    *new_stones.entry(num * 2024).or_insert(0) += count;
                 }
             }
         }
-        stones = new_stones;
+        mem::swap(&mut stones, &mut new_stones);
     }
 
     stones.values().sum::<usize>()
