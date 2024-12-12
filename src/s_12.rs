@@ -1,5 +1,3 @@
-use std::time::Instant;
-
 use rustc_hash::FxHashSet;
 
 use crate::{common::*, geometry::*};
@@ -21,34 +19,32 @@ impl Solution for S {
         let grid = input.grid2d(|c| c);
         let regions = get_regions(&grid);
 
-        let mut result = 0;
-
-        for region in regions {
-            let mut perimeter = 0;
-            for pos in region.iter() {
-                let current = grid.get(pos).unwrap();
-
-                let left = grid.get(&pos.left());
-                let right = grid.get(&pos.right());
-                let up = grid.get(&pos.up());
-                let down = grid.get(&pos.down());
-
-                if left.is_none() || left.unwrap() != current {
-                    perimeter += 1;
-                }
-                if right.is_none() || right.unwrap() != current {
-                    perimeter += 1;
-                }
-                if up.is_none() || up.unwrap() != current {
-                    perimeter += 1;
-                }
-                if down.is_none() || down.unwrap() != current {
-                    perimeter += 1;
-                }
-            }
-
-            result += region.len() * perimeter;
-        }
+        let result: u32 = regions
+            .iter()
+            .map(|region| {
+                region
+                    .iter()
+                    .map(|pos| {
+                        let mut perimeter: u32 = 0;
+                        let current = grid.get(pos).unwrap();
+                        if grid.get(&pos.left()) != Some(current) {
+                            perimeter += 1;
+                        }
+                        if grid.get(&pos.right()) != Some(current) {
+                            perimeter += 1;
+                        }
+                        if grid.get(&pos.up()) != Some(current) {
+                            perimeter += 1;
+                        }
+                        if grid.get(&pos.down()) != Some(current) {
+                            perimeter += 1;
+                        }
+                        perimeter
+                    })
+                    .sum::<u32>()
+                    * region.len() as u32
+            })
+            .sum();
 
         result.to_string()
     }
@@ -77,22 +73,15 @@ MMMISSJEEE
 
         let cells = grid
             .iter()
-            .map(|(pos, c)| {
-                let left = grid.get(&pos.left());
-                let right = grid.get(&pos.right());
-                let up = grid.get(&pos.up());
-                let down = grid.get(&pos.down());
-
-                Cell {
-                    pos,
-                    value: *c,
-                    left_border: left.is_none() || left.unwrap() != c,
-                    right_border: right.is_none() || right.unwrap() != c,
-                    up_border: up.is_none() || up.unwrap() != c,
-                    down_border: down.is_none() || down.unwrap() != c,
-                }
+            .map(|(pos, c)| Cell {
+                pos,
+                value: *c,
+                left_border: grid.get(&pos.left()) != Some(c),
+                right_border: grid.get(&pos.right()) != Some(c),
+                up_border: grid.get(&pos.up()) != Some(c),
+                down_border: grid.get(&pos.down()) != Some(c),
             })
-            .collect::<Vec<_>>();
+            .collect();
         let cell_grid = Grid2d::new(grid.width, grid.height, cells);
 
         let mut result = 0;
