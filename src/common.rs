@@ -184,6 +184,14 @@ impl VecI2 {
     pub fn left(&self) -> Self {
         Self(self.0 - 1, self.1)
     }
+
+    pub fn min(&self, other: &VecI2) -> VecI2 {
+        VecI2(self.0.min(other.0), self.1.min(other.1))
+    }
+
+    pub fn max(&self, other: &VecI2) -> VecI2 {
+        VecI2(self.0.max(other.0), self.1.max(other.1))
+    }
 }
 
 impl Add for VecI2 {
