@@ -174,59 +174,6 @@ fn parse_blocks(input: &PuzzleInput) -> Vec<Block> {
     blocks
 }
 
-fn to_string(blocks: &Vec<Block>) -> String {
-    let mut result = String::new();
-
-    for block in blocks {
-        match block {
-            Block::Empty => {
-                result.push('.');
-            }
-            Block::Used(i) => {
-                result.push_str(&i.to_string());
-            }
-        }
-    }
-
-    result
-}
-
-fn to_string2(blocks: &[Block2], left: usize, right: usize) -> String {
-    let mut result1 = String::new();
-    let mut result2 = String::new();
-
-    for (n, block) in blocks.iter().enumerate() {
-        match block {
-            Block2::Empty(c) => {
-                for _ in 0..*c {
-                    result1.push('.');
-                    if n == left {
-                        result2.push('L');
-                    } else if n == right {
-                        result2.push('R');
-                    } else {
-                        result2.push(' ');
-                    }
-                }
-            }
-            Block2::Used(i, c) => {
-                for _ in 0..*c {
-                    result1.push_str(&i.to_string());
-                    if n == left {
-                        result2.push('L');
-                    } else if n == right {
-                        result2.push('R');
-                    } else {
-                        result2.push(' ');
-                    }
-                }
-            }
-        }
-    }
-
-    format!("{}\n{}", result1, result2)
-}
-
 fn get_checksum(blocks: &[Block]) -> usize {
     blocks
         .iter()
