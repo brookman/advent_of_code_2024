@@ -8,6 +8,7 @@ use common::{PuzzleInput, Solution};
 use itertools::Itertools;
 
 mod common;
+mod geometry;
 mod s_01;
 mod s_02;
 mod s_03;
