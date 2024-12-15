@@ -4,11 +4,11 @@ pub struct S;
 
 use lazy_static::lazy_static;
 use regex::Regex;
-use z3::{
-    self,
-    ast::{Ast, Int},
-    Config, Context, Optimize, SatResult,
-};
+// use z3::{
+//     self,
+//     ast::{Ast, Int},
+//     Config, Context, Optimize, SatResult,
+// };
 
 lazy_static! {
     static ref BUTTON: Regex = Regex::new(r"^Button .: X(\+\d+), Y(\+\d+)$").unwrap();
@@ -82,64 +82,64 @@ fn solve(input: &PuzzleInput, c: i64) -> i64 {
 
     let mut result = 0;
 
-    let cfg = Config::new();
-    let ctx = &Context::new(&cfg);
-    let a = Int::new_const(ctx, "a");
-    let b = Int::new_const(ctx, "b");
-    let zero = Int::from_i64(ctx, 0);
-    let three = Int::from_i64(ctx, 3);
-    let c = Int::from_i64(ctx, c);
+    // let cfg = Config::new();
+    // let ctx = &Context::new(&cfg);
+    // let a = Int::new_const(ctx, "a");
+    // let b = Int::new_const(ctx, "b");
+    // let zero = Int::from_i64(ctx, 0);
+    // let three = Int::from_i64(ctx, 3);
+    // let c = Int::from_i64(ctx, c);
 
-    let mut iter = input.lines.iter();
-    let mut line = iter.next();
+    // let mut iter = input.lines.iter();
+    // let mut line = iter.next();
 
-    while line.is_some() {
-        let button_a = line.unwrap();
-        line = iter.next();
-        let button_b = line.unwrap();
-        line = iter.next();
-        let prize = line.unwrap();
-        iter.next();
-        line = iter.next();
+    // while line.is_some() {
+    //     let button_a = line.unwrap();
+    //     line = iter.next();
+    //     let button_b = line.unwrap();
+    //     line = iter.next();
+    //     let prize = line.unwrap();
+    //     iter.next();
+    //     line = iter.next();
 
-        let (ax, ay) = get_numbers(&BUTTON, button_a);
-        let (bx, by) = get_numbers(&BUTTON, button_b);
-        let (px, py) = get_numbers(&PRIZE, prize);
+    //     let (ax, ay) = get_numbers(&BUTTON, button_a);
+    //     let (bx, by) = get_numbers(&BUTTON, button_b);
+    //     let (px, py) = get_numbers(&PRIZE, prize);
 
-        let ax = Int::from_i64(ctx, ax);
-        let ay = Int::from_i64(ctx, ay);
-        let bx = Int::from_i64(ctx, bx);
-        let by = Int::from_i64(ctx, by);
-        let px = Int::from_i64(ctx, px);
-        let py = Int::from_i64(ctx, py);
+    //     let ax = Int::from_i64(ctx, ax);
+    //     let ay = Int::from_i64(ctx, ay);
+    //     let bx = Int::from_i64(ctx, bx);
+    //     let by = Int::from_i64(ctx, by);
+    //     let px = Int::from_i64(ctx, px);
+    //     let py = Int::from_i64(ctx, py);
 
-        let opt = Optimize::new(ctx);
+    //     let opt = Optimize::new(ctx);
 
-        opt.assert(&a.gt(&zero));
-        opt.assert(&b.gt(&zero));
-        opt.minimize(&Int::add(ctx, &[&Int::mul(ctx, &[&a, &three]), &b]));
+    //     opt.assert(&a.gt(&zero));
+    //     opt.assert(&b.gt(&zero));
+    //     opt.minimize(&Int::add(ctx, &[&Int::mul(ctx, &[&a, &three]), &b]));
 
-        let eq_1 = Int::add(
-            ctx,
-            &[&Int::mul(ctx, &[&ax, &a]), &Int::mul(ctx, &[&bx, &b])],
-        );
-        let px = Int::add(ctx, &[&px, &c]);
-        opt.assert(&eq_1._eq(&px));
+    //     let eq_1 = Int::add(
+    //         ctx,
+    //         &[&Int::mul(ctx, &[&ax, &a]), &Int::mul(ctx, &[&bx, &b])],
+    //     );
+    //     let px = Int::add(ctx, &[&px, &c]);
+    //     opt.assert(&eq_1._eq(&px));
 
-        let eq_2 = Int::add(
-            ctx,
-            &[&Int::mul(ctx, &[&ay, &a]), &Int::mul(ctx, &[&by, &b])],
-        );
-        let py = Int::add(ctx, &[&py, &c]);
-        opt.assert(&eq_2._eq(&py));
+    //     let eq_2 = Int::add(
+    //         ctx,
+    //         &[&Int::mul(ctx, &[&ay, &a]), &Int::mul(ctx, &[&by, &b])],
+    //     );
+    //     let py = Int::add(ctx, &[&py, &c]);
+    //     opt.assert(&eq_2._eq(&py));
 
-        if opt.check(&[]) == SatResult::Sat {
-            let model = opt.get_model().unwrap();
-            let a = model.eval(&a, true).unwrap().as_i64().unwrap();
-            let b = model.eval(&b, true).unwrap().as_i64().unwrap();
-            result += a * 3 + b;
-        }
-    }
+    //     if opt.check(&[]) == SatResult::Sat {
+    //         let model = opt.get_model().unwrap();
+    //         let a = model.eval(&a, true).unwrap().as_i64().unwrap();
+    //         let b = model.eval(&b, true).unwrap().as_i64().unwrap();
+    //         result += a * 3 + b;
+    //     }
+    // }
 
     result
 }
