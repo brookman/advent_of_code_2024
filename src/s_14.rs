@@ -1,9 +1,6 @@
-use std::{cmp::Ordering, f64::consts::E};
+use std::cmp::Ordering;
 
-use crate::{
-    common::*,
-    geometry::{Bounded2, Bounds2, Extendable},
-};
+use crate::common::*;
 use lazy_static::lazy_static;
 use regex::Regex;
 
@@ -98,38 +95,32 @@ p=9,5 v=-3,-3
             )
         };
 
+        const GRID_W: usize = 3;
+        const GRID_H: usize = 3;
+
         for steps in 0..=10000 {
-            let mut bounds: Option<Bounds2> = None;
-            let mut img = image::ImageBuffer::new(width as u32, height as u32);
+            let mut buckets = [0; GRID_H * GRID_W];
 
             for line in input.lines.iter() {
                 let (p, v) = get_numbers(&LINE, line);
                 let end = p + v * steps;
                 let end = VecI2(mod_neg(end.0, width), mod_neg(end.1, height));
 
-                let b = Bounds2::from_point(end);
-
-                if bounds.is_none() {
-                    bounds = Some(b);
-                } else {
-                    bounds.as_mut().unwrap().extend_mut(&b);
-                }
-
-                let color = [255u8, 255u8, 255u8];
-                img.put_pixel(end.0 as u32, end.1 as u32, image::Rgb(color));
+                let q1 = (end.0 as f32 / width as f32 * GRID_W as f32).clamp(0.0, GRID_W as f32)
+                    as usize;
+                let q2 = (end.1 as f32 / height as f32 * GRID_H as f32).clamp(0.0, GRID_H as f32)
+                    as usize;
+                buckets[(q2 * GRID_W + q1) as usize] += 1;
             }
 
-            let bounds_size = bounds.unwrap().size();
+            let weighted_max = weighted_max(&buckets);
 
-            if bounds_size.0 < 100 || bounds_size.1 < 100 {
-                let steps = format!("{:0>5}", steps);
-                img.save(format!("output_14/image_{steps}.png")).unwrap();
+            if weighted_max > 0.5 {
+                return steps.to_string();
             }
         }
 
-        let result = 12;
-
-        result.to_string()
+        "".to_string()
     }
 
     fn test_input_two(&self) -> &str {
@@ -139,4 +130,10 @@ p=9,5 v=-3,-3
     fn expected_output_two(&self) -> &str {
         ""
     }
+}
+
+fn weighted_max(input: &[i32]) -> f32 {
+    let max_value = *input.iter().max().unwrap();
+    let total: i32 = input.iter().sum();
+    max_value as f32 / total as f32
 }
