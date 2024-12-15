@@ -1,5 +1,5 @@
 #![allow(dead_code)]
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::fs;
 use std::io::{BufRead, BufReader, Lines, Result};
 use std::ops::{Add, Div, Mul, Sub};
@@ -73,14 +73,7 @@ impl PuzzleInput {
     }
 
     pub fn grid2d<T>(&self, f: fn(char) -> T) -> Grid2d<T> {
-        let width = self.lines[0].len();
-        let height = self.lines.len();
-        let vec = self
-            .lines
-            .iter()
-            .flat_map(|line| line.chars().map(f).collect::<Vec<T>>())
-            .collect();
-        Grid2d::new(width, height, vec)
+        Grid2d::from_lines(&self.lines, f)
     }
 }
 
@@ -94,6 +87,16 @@ pub struct Grid2d<T> {
 impl<T> Grid2d<T> {
     pub fn new(width: usize, height: usize, vec: Vec<T>) -> Self {
         Self { width, height, vec }
+    }
+
+    pub fn from_lines(lines: &[String], f: fn(char) -> T) -> Grid2d<T> {
+        let width = lines[0].len();
+        let height = lines.len();
+        let vec = lines
+            .iter()
+            .flat_map(|line| line.chars().map(f).collect::<Vec<T>>())
+            .collect();
+        Grid2d::new(width, height, vec)
     }
 
     pub fn to_pos(&self, index: i32) -> Option<VecI2> {
@@ -147,6 +150,34 @@ impl<T> Grid2d<T> {
 
     pub fn find_first(&self, f: impl Fn(&T) -> bool) -> Option<(VecI2, &T)> {
         self.iter().find(|(_, t)| f(t))
+    }
+}
+
+impl<T: Display> Display for Grid2d<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.vec.iter().enumerate().for_each(|(i, t)| {
+            write!(f, "{t}").unwrap();
+            if i % self.width == self.width - 1 {
+                writeln!(f).unwrap();
+            }
+        });
+        Ok(())
+    }
+}
+
+pub struct DisplayVec<T: Display>(pub Vec<T>);
+
+impl<T: Display> Display for DisplayVec<T> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            self.0
+                .iter()
+                .map(|e| e.to_string())
+                .collect::<Vec<String>>()
+                .join("")
+        )
     }
 }
 

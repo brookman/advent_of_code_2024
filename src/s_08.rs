@@ -46,20 +46,6 @@ impl Display for Location {
     }
 }
 
-impl Display for Grid2d<Location> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut last_row = 0;
-        for (p, l) in self.iter() {
-            if p.1 != last_row {
-                writeln!(f).unwrap();
-            }
-            last_row = p.1;
-            write!(f, "{}", l).unwrap();
-        }
-        Ok(())
-    }
-}
-
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
         let grid = input.grid2d(Location::from_char);
