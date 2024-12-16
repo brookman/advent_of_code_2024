@@ -130,35 +130,17 @@ impl Pos {
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
-        let grid = input.grid2d(|c| match c {
-            '.' => Entity::Empty,
-            '#' => Entity::Wall,
-            'S' => Entity::Start,
-            'E' => Entity::End,
-            _ => panic!("Unknown char: {}", c),
-        });
-        let start = grid.find_first(|e| matches!(e, Entity::Start)).unwrap().0;
-        let end = grid.find_first(|e| matches!(e, Entity::End)).unwrap().0;
+        let (grid, start, end) = parse(input);
 
-        let start = Pos {
-            pos: start,
-            dir: Direction::Right,
-        };
-
-        // println!("{:?}", grid);
-        // println!("{:?}", start);
-        // println!("{:?}", end);
-
-        let result = astar(
+        astar(
             &start,
             |p| p.successors(&grid),
             |p| p.distance(&end),
             |p| p.pos == end,
         )
         .unwrap()
-        .1;
-
-        result.to_string()
+        .1
+        .to_string()
     }
 
     fn test_input_one(&self) -> &str {
@@ -185,39 +167,21 @@ impl Solution for S {
     }
 
     fn solve_two(&self, input: &PuzzleInput) -> String {
-        let grid = input.grid2d(|c| match c {
-            '.' => Entity::Empty,
-            '#' => Entity::Wall,
-            'S' => Entity::Start,
-            'E' => Entity::End,
-            _ => panic!("Unknown char: {}", c),
-        });
-        let start = grid.find_first(|e| matches!(e, Entity::Start)).unwrap().0;
-        let end = grid.find_first(|e| matches!(e, Entity::End)).unwrap().0;
+        let (grid, start, end) = parse(input);
 
-        let start = Pos {
-            pos: start,
-            dir: Direction::Right,
-        };
-
-        let mut best_path_tiles = HashSet::new();
-
-        let result = astar_bag_collect(
+        astar_bag_collect(
             &start,
             |p| p.successors(&grid),
             |p| p.distance(&end),
             |p| p.pos == end,
         )
-        .unwrap()
-        .0;
-
-        for path in result.iter() {
-            for pos in path.iter() {
-                best_path_tiles.insert(pos.pos);
-            }
-        }
-
-        best_path_tiles.len().to_string()
+        .unwrap_or_default()
+        .0
+        .iter()
+        .flat_map(|p| p.iter())
+        .collect::<HashSet<_>>()
+        .len()
+        .to_string()
     }
 
     fn test_input_two(&self) -> &str {
@@ -242,4 +206,23 @@ impl Solution for S {
     fn expected_output_two(&self) -> &str {
         "45"
     }
+}
+
+fn parse(input: &PuzzleInput) -> (Grid2d<Entity>, Pos, VecI2) {
+    let grid = input.grid2d(|c| match c {
+        '.' => Entity::Empty,
+        '#' => Entity::Wall,
+        'S' => Entity::Start,
+        'E' => Entity::End,
+        _ => panic!("Unknown char: {}", c),
+    });
+
+    let start = grid.find_first(|e| matches!(e, Entity::Start)).unwrap().0;
+    let end = grid.find_first(|e| matches!(e, Entity::End)).unwrap().0;
+
+    let start = Pos {
+        pos: start,
+        dir: Direction::Right,
+    };
+    (grid, start, end)
 }
