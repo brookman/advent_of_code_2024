@@ -22,3 +22,4 @@ lazy_static = "1.5.0"
 rayon = "1.10.0"
 rustc-hash = "2.1.0"
 z3 = { git = "https://github.com/prove-rs/z3.rs", rev = "4f9fcfe43ff2c78aadfaf57c4fab1f7cbe4aa8a8"}
+pathfinding = "4.12.0"

@@ -199,7 +199,7 @@ pub trait Solution {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct VecI2(pub i32, pub i32);
 
 impl VecI2 {
