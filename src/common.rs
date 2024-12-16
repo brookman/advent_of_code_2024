@@ -216,6 +216,15 @@ impl VecI2 {
         Self(self.0 - 1, self.1)
     }
 
+    pub fn dir(&self, direction: &Direction) -> Self {
+        match direction {
+            Direction::Left => self.left(),
+            Direction::Right => self.right(),
+            Direction::Up => self.up(),
+            Direction::Down => self.down(),
+        }
+    }
+
     pub fn min(&self, other: &VecI2) -> VecI2 {
         VecI2(self.0.min(other.0), self.1.min(other.1))
     }
@@ -254,5 +263,36 @@ impl Div<i32> for VecI2 {
 
     fn div(self, rhs: i32) -> Self {
         Self(self.0 / rhs, self.1 / rhs)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum Direction {
+    Left,
+    Right,
+    Up,
+    Down,
+}
+
+impl Direction {
+    pub fn from_char(c: char) -> Option<Self> {
+        match c {
+            '<' => Some(Self::Left),
+            '>' => Some(Self::Right),
+            '^' => Some(Self::Up),
+            'v' => Some(Self::Down),
+            _ => None,
+        }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Direction::Left => write!(f, "<"),
+            Direction::Right => write!(f, ">"),
+            Direction::Up => write!(f, "^"),
+            Direction::Down => write!(f, "v"),
+        }
     }
 }

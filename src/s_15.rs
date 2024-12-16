@@ -40,14 +40,6 @@ pub enum Entity {
     Wall,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
-pub enum Direction {
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
 impl Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -57,17 +49,6 @@ impl Display for Entity {
             Entity::BoxLeft => write!(f, "["),
             Entity::BoxRight => write!(f, "]"),
             Entity::Wall => write!(f, "#"),
-        }
-    }
-}
-
-impl Display for Direction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Direction::Left => write!(f, "<"),
-            Direction::Right => write!(f, ">"),
-            Direction::Up => write!(f, "^"),
-            Direction::Down => write!(f, "v"),
         }
     }
 }
@@ -136,12 +117,7 @@ fn solve(lines: &[String], line_modifier: fn(char) -> String) -> u32 {
     for direction in moves {
         if can_move(&grid, robot_pos, &direction) {
             move_it(&mut grid, robot_pos, &direction);
-            robot_pos = match direction {
-                Direction::Left => robot_pos.left(),
-                Direction::Right => robot_pos.right(),
-                Direction::Up => robot_pos.up(),
-                Direction::Down => robot_pos.down(),
-            };
+            robot_pos = robot_pos.dir(&direction)
         }
     }
 
@@ -164,23 +140,13 @@ fn parse_moves(move_lines: &[String]) -> Vec<Direction> {
     move_lines
         .iter()
         .flat_map(|l| l.chars())
-        .map(|c| match c {
-            '^' => Direction::Up,
-            'v' => Direction::Down,
-            '<' => Direction::Left,
-            '>' => Direction::Right,
-            _ => panic!("Unknown char: {}", c),
-        })
+        .map(Direction::from_char)
+        .map(Option::unwrap)
         .collect()
 }
 
 fn can_move(grid: &Grid2d<Entity>, pos: VecI2, direction: &Direction) -> bool {
-    let new_pos = match direction {
-        Direction::Left => pos.left(),
-        Direction::Right => pos.right(),
-        Direction::Up => pos.up(),
-        Direction::Down => pos.down(),
-    };
+    let new_pos = pos.dir(direction);
 
     let target = grid.get(&new_pos);
     if target.is_none() {
@@ -215,13 +181,7 @@ fn can_move(grid: &Grid2d<Entity>, pos: VecI2, direction: &Direction) -> bool {
 fn move_it(grid: &mut Grid2d<Entity>, pos: VecI2, direction: &Direction) {
     let current = grid.get(&pos).unwrap().clone();
 
-    let new_pos = match direction {
-        Direction::Left => pos.left(),
-        Direction::Right => pos.right(),
-        Direction::Up => pos.up(),
-        Direction::Down => pos.down(),
-    };
-
+    let new_pos = pos.dir(direction);
     let target = grid.get(&new_pos).unwrap().clone();
 
     match target {

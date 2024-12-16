@@ -13,14 +13,6 @@ pub enum Entity {
     Wall,
 }
 
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-enum Direction {
-    Left,
-    Right,
-    Up,
-    Down,
-}
-
 impl Display for Entity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -120,12 +112,7 @@ impl Pos {
                 ))
             }
         }
-        let new_pos = match self.dir {
-            Direction::Left => self.pos.left(),
-            Direction::Right => self.pos.right(),
-            Direction::Up => self.pos.up(),
-            Direction::Down => self.pos.down(),
-        };
+        let new_pos = self.pos.dir(&self.dir);
         if let Some(new_pos_entity) = grid.get(&new_pos) {
             if new_pos_entity != &Entity::Wall {
                 succ.push((

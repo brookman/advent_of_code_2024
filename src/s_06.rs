@@ -30,37 +30,6 @@ impl Display for MapTile {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-enum Direction {
-    Up,
-    Right,
-    Down,
-    Left,
-}
-
-impl Direction {
-    fn from_char(c: char) -> Option<Self> {
-        match c {
-            '^' => Some(Self::Up),
-            '>' => Some(Self::Right),
-            'v' => Some(Self::Down),
-            '<' => Some(Self::Left),
-            _ => None,
-        }
-    }
-}
-
-impl Display for Direction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Up => write!(f, "^"),
-            Self::Right => write!(f, ">"),
-            Self::Down => write!(f, "v"),
-            Self::Left => write!(f, "<"),
-        }
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct Guard {
     pos: VecI2,
     direction: Direction,
@@ -110,12 +79,7 @@ impl Puzzle {
             }
             self.visited_with_dir.insert(guard);
 
-            let next_pos = match guard.direction {
-                Direction::Up => guard.pos.up(),
-                Direction::Right => guard.pos.right(),
-                Direction::Down => guard.pos.down(),
-                Direction::Left => guard.pos.left(),
-            };
+            let next_pos = guard.pos.dir(&guard.direction);
 
             if grid.in_bounds(&next_pos) {
                 if grid.get(&next_pos).unwrap() == &MapTile::Empty
@@ -144,12 +108,6 @@ impl Puzzle {
         Some(self.visited.len())
     }
 }
-
-// impl Display for Grid2d {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         write!(f, "{}", self.print())
-//     }
-// }
 
 impl Solution for S {
     fn solve_one(&self, input: &PuzzleInput) -> String {
